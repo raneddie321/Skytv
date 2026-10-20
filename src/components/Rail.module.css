@@ -1,0 +1,40 @@
+.rail {
+  position: relative;
+  margin-bottom: 1.9rem;
+}
+.header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 0 var(--safe-x);
+  margin-bottom: 0.7rem;
+}
+.title {
+  font-size: var(--text-lg);
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+.scroller {
+  display: flex;
+  gap: var(--row-gap);
+  overflow-x: auto;
+  overflow-y: visible;
+  /* room for the focus scale + ring */
+  padding: 0.7rem var(--safe-x) 0.9rem;
+  margin: -0.7rem 0 -0.9rem;
+  scroll-padding: 0 var(--safe-x);
+  -webkit-overflow-scrolling: touch;
+}
+.skeleton {
+  flex: none;
+  width: var(--card-w);
+  aspect-ratio: 16 / 9;
+}
+.skeleton.poster { width: var(--card-poster-w); aspect-ratio: 2 / 3; }
+.skeleton.large { width: calc(var(--card-w) * 1.62); }
+.empty {
+  padding: 0 var(--safe-x);
+  color: var(--c-text-3);
+  font-size: var(--text-md);
+}
+:global(.theme-kids) .title { font-size: 1.6rem; font-weight: 800; }

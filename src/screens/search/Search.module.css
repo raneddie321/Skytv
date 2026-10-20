@@ -1,0 +1,38 @@
+.page {
+  display: grid;
+  grid-template-columns: 30rem minmax(0, 1fr);
+  gap: 2rem;
+  padding: calc(var(--nav-h) + var(--safe-top) * 2 + 1.4rem) 0 3rem var(--safe-x);
+  min-height: 100vh;
+}
+.left { position: sticky; top: calc(var(--nav-h) + var(--safe-top) * 2 + 1.4rem); align-self: start; }
+.field {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  height: 3.4rem;
+  padding: 0 1.2rem;
+  margin-bottom: 1rem;
+  border-radius: var(--radius-md);
+  background: var(--c-surface);
+  font-size: var(--text-lg);
+}
+.query { font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.placeholder { color: var(--c-text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.caret { flex: none; width: 0.12rem; height: 1.6rem; margin-left: -0.6rem; background: var(--c-text); animation: skeleton-pulse 1s steps(2) infinite; }
+.recent { margin-top: 1.6rem; }
+.recentHeader h2 { font-size: var(--text-md); font-weight: 650; color: var(--c-text-2); margin-bottom: 0.6rem; }
+.recentList { display: flex; flex-direction: column; gap: 0.25rem; }
+.recentItem { display: flex; align-items: center; gap: 0.6rem; height: 2.4rem; padding: 0 0.9rem; border-radius: var(--radius-sm); color: var(--c-text-2); font-size: var(--text-md); }
+.recentItem[data-focused='true'] { background: #fff; color: #000; }
+.clear { color: var(--c-text-3); font-size: var(--text-sm); }
+.right { min-width: 0; }
+.right > section { padding-left: 0; }
+.noResults { display: flex; flex-direction: column; align-items: flex-start; gap: 0.5rem; color: var(--c-text-2); }
+.tip { color: var(--c-text-3); font-size: var(--text-sm); }
+.kids { padding-top: calc(var(--nav-h) + var(--safe-top) * 2 + 2rem); grid-template-columns: 36rem minmax(0, 1fr); }
+.kids .field { background: #fff; font-size: 1.6rem; height: 4.2rem; border-radius: var(--radius-lg); box-shadow: 0 0.2rem 0.8rem rgba(40, 60, 140, 0.1); }
+@media (max-width: 1000px) {
+  .page { grid-template-columns: 1fr; padding-right: var(--safe-x); }
+  .left { position: static; }
+}

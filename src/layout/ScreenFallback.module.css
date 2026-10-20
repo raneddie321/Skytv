@@ -1,0 +1,18 @@
+.wrap {
+  padding: calc(var(--nav-h) + var(--safe-top) * 2 + 2rem) var(--safe-x) 0;
+}
+.hero {
+  width: 40%;
+  height: 14rem;
+  margin-bottom: 3rem;
+}
+.row {
+  display: flex;
+  gap: var(--row-gap);
+  overflow: hidden;
+}
+.card {
+  flex: none;
+  width: var(--card-w);
+  aspect-ratio: 16 / 9;
+}

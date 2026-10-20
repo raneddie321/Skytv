@@ -1,0 +1,109 @@
+/*
+ * Design tokens. Layout is authored in rem; the root font-size scales with the viewport so a 1920×1080 TV gets
+ * 1rem = 20px, 4K gets 40px and 720p gets ~13px — identical proportions at every TV resolution.
+ * Phones/tablets switch to a fixed-size responsive layout (see global.css).
+ */
+:root {
+  --font-ui: 'Inter Variable', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-condensed: 'Bebas Neue', 'Oswald', 'Arial Narrow', var(--font-ui);
+  --font-serif: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+
+  --c-bg: #000000;
+  --c-bg-raised: #0b0c10;
+  --c-surface: #15171c;
+  --c-surface-2: #1d2027;
+  --c-surface-3: #272b33;
+  --c-line: rgba(255, 255, 255, 0.12);
+  --c-text: #ffffff;
+  --c-text-2: rgba(255, 255, 255, 0.74);
+  --c-text-3: rgba(255, 255, 255, 0.54);
+  --c-focus: #ffffff;
+  --c-on-focus: #000000;
+  --c-progress: #2f7bf5;
+  --c-progress-track: rgba(255, 255, 255, 0.28);
+  --c-live: #ff3b4a;
+  --c-success: #3ddc84;
+  --c-warning: #ffb547;
+  --c-danger: #ff5a5f;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+
+  /* TV-safe area (~5% horizontal, ~4% vertical of a 96×54rem screen) */
+  --safe-x: 4rem;
+  --safe-top: 1.6rem;
+  --safe-bottom: 2rem;
+  --nav-h: 3.4rem;
+
+  --radius-xs: 0.25rem;
+  --radius-sm: 0.4rem;
+  --radius-md: 0.6rem;
+  --radius-lg: 0.9rem;
+  --radius-pill: 999px;
+
+  --focus-ring: 0 0 0 0.18rem var(--c-focus);
+  --focus-scale: 1.04;
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --dur-fast: 120ms;
+  --dur: 220ms;
+
+  --text-xs: 0.85rem;
+  --text-sm: 0.95rem;
+  --text-md: 1.1rem;
+  --text-lg: 1.3rem;
+  --text-xl: 1.7rem;
+  --text-2xl: 2.4rem;
+  --text-3xl: 3.4rem;
+  --text-display: 4.6rem;
+
+  --card-w: 16.6rem;
+  --card-poster-w: 9.4rem;
+  --row-gap: 0.85rem;
+
+  --scroll-top-margin: 5.2rem;
+}
+
+:root[data-large-text='true'] {
+  --text-xs: 1rem;
+  --text-sm: 1.1rem;
+  --text-md: 1.25rem;
+  --text-lg: 1.45rem;
+}
+
+:root[data-high-contrast='true'] {
+  --c-text-2: rgba(255, 255, 255, 0.9);
+  --c-text-3: rgba(255, 255, 255, 0.78);
+  --focus-ring: 0 0 0 0.25rem #ffffff, 0 0 0 0.4rem #000000;
+}
+
+:root[data-reduce-motion='true'] {
+  --dur-fast: 0ms;
+  --dur: 0ms;
+  --focus-scale: 1;
+}
+
+/* Kids theme: bright pastel, oversized type */
+.theme-kids {
+  --c-bg: #e8f4ff;
+  --c-bg-raised: #ffffff;
+  --c-surface: #ffffff;
+  --c-surface-2: #f2f7ff;
+  --c-surface-3: #dfeaff;
+  --c-line: rgba(30, 50, 110, 0.12);
+  --c-text: #1d2b5c;
+  --c-text-2: rgba(29, 43, 92, 0.78);
+  --c-text-3: rgba(29, 43, 92, 0.58);
+  --c-focus: #7c5cff;
+  --c-on-focus: #ffffff;
+  --c-progress: #7c5cff;
+  --c-progress-track: rgba(124, 92, 255, 0.2);
+  --focus-ring: 0 0 0 0.3rem #ffffff, 0 0 0 0.55rem #7c5cff;
+  --radius-md: 1rem;
+  --radius-lg: 1.4rem;
+}

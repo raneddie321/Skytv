@@ -1,0 +1,23 @@
+.page { padding-bottom: 3rem; }
+.body { position: relative; margin-top: -0.8rem; }
+.genreBar { margin-bottom: 1.6rem; }
+.genres {
+  display: flex;
+  gap: 0.55rem;
+  overflow-x: auto;
+  padding: 0.4rem var(--safe-x);
+}
+.genre {
+  flex: none;
+  height: 2.4rem;
+  padding: 0 1.15rem;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--c-text-2);
+  font-weight: 550;
+  font-size: var(--text-sm);
+  white-space: nowrap;
+  transition: background-color var(--dur-fast) ease, color var(--dur-fast) ease;
+}
+.genreActive { background: rgba(255, 255, 255, 0.2); color: #fff; }
+.genre[data-focused='true'] { background: #fff; color: #000; }

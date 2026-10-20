@@ -1,0 +1,7 @@
+.shell {
+  min-height: 100vh;
+  background: var(--c-bg);
+}
+.main {
+  min-height: 100vh;
+}

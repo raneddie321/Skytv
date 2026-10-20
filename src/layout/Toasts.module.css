@@ -1,0 +1,24 @@
+.stack {
+  position: fixed;
+  right: var(--safe-x);
+  bottom: var(--safe-bottom);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.6rem;
+  pointer-events: none;
+}
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.8rem 1.2rem;
+  border-radius: var(--radius-pill);
+  background: #fff;
+  color: #000;
+  font-weight: 600;
+  font-size: var(--text-md);
+  box-shadow: 0 0.6rem 2rem rgba(0, 0, 0, 0.45);
+  animation: fade-in var(--dur) ease;
+}

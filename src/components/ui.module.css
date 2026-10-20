@@ -1,0 +1,97 @@
+.pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  height: 2.7rem;
+  padding: 0 1.35rem;
+  border-radius: var(--radius-pill);
+  font-weight: 600;
+  font-size: var(--text-md);
+  white-space: nowrap;
+  transition:
+    background-color var(--dur-fast) ease,
+    color var(--dur-fast) ease,
+    transform var(--dur-fast) var(--ease);
+}
+.sm { height: 2.2rem; padding: 0 1rem; font-size: var(--text-sm); }
+.lg { height: 3.1rem; padding: 0 1.7rem; font-size: var(--text-lg); }
+.iconOnly { width: 2.7rem; padding: 0; }
+.sm.iconOnly { width: 2.2rem; }
+.lg.iconOnly { width: 3.1rem; }
+
+.primary { background: rgba(255, 255, 255, 0.92); color: #000; }
+.secondary { background: rgba(255, 255, 255, 0.14); color: var(--c-text); }
+.ghost { background: transparent; color: var(--c-text-2); }
+
+.pill[data-focused='true'] {
+  background: var(--c-focus);
+  color: var(--c-on-focus);
+  transform: scale(var(--focus-scale));
+  box-shadow: var(--focus-ring);
+}
+.pill[aria-disabled='true'] { opacity: 0.4; }
+
+:global(.theme-kids) .secondary { background: #ffffff; color: var(--c-text); box-shadow: 0 0.15rem 0.6rem rgba(40, 60, 140, 0.12); }
+:global(.theme-kids) .primary { background: #7c5cff; color: #fff; }
+
+.progress {
+  height: 0.28rem;
+  border-radius: var(--radius-pill);
+  background: var(--c-progress-track);
+  overflow: hidden;
+}
+.progressFill {
+  height: 100%;
+  background: var(--c-progress);
+  border-radius: inherit;
+}
+.live .progressFill { background: #ffffff; }
+
+.skeleton {
+  background: var(--c-surface-2);
+  border-radius: var(--radius-md);
+  animation: skeleton-pulse 1.6s ease-in-out infinite;
+}
+:global([data-reduce-motion='true']) .skeleton { animation: none; }
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  height: 1.45rem;
+  padding: 0 0.55rem;
+  border-radius: var(--radius-xs);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.badge_default { background: rgba(255, 255, 255, 0.16); color: #fff; }
+.badge_live { background: var(--c-live); color: #fff; }
+.badge_new { background: #fff; color: #000; }
+.badge_outline { border: 1px solid rgba(255, 255, 255, 0.5); color: var(--c-text-2); }
+
+.error {
+  display: flex;
+  align-items: center;
+  gap: 1.4rem;
+  padding: 1.6rem 2rem;
+  margin: 1rem var(--safe-x);
+  border-radius: var(--radius-lg);
+  background: var(--c-surface);
+  color: var(--c-text-2);
+}
+.error h3 { color: var(--c-text); font-size: var(--text-lg); margin-bottom: 0.2rem; }
+.error p { font-size: var(--text-md); }
+.error > div { flex: 1; }
+.errorCompact { padding: 1rem 1.4rem; }
+
+.notice {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--text-sm);
+  color: var(--c-text-3);
+}

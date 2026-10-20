@@ -1,0 +1,27 @@
+.message { color: var(--c-text-2); margin-bottom: 1.4rem; }
+.dots { display: flex; justify-content: center; gap: 1rem; }
+.dots span {
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 50%;
+  border: 0.14rem solid var(--c-text-2);
+}
+.dots span.filled { background: var(--c-text); border-color: var(--c-text); }
+.shake { animation: shake 360ms ease; }
+@keyframes shake {
+  20%, 60% { transform: translateX(-0.5rem); }
+  40%, 80% { transform: translateX(0.5rem); }
+}
+.error { text-align: center; color: var(--c-danger); font-size: var(--text-sm); margin: 0.6rem 0 1rem; min-height: 1.3em; }
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem; }
+.key {
+  height: 3.4rem;
+  border-radius: var(--radius-md);
+  background: var(--c-surface-2);
+  font-size: var(--text-xl);
+  font-weight: 600;
+  display: grid;
+  place-items: center;
+}
+.key[data-focused='true'] { background: var(--c-focus); color: var(--c-on-focus); }
+.hint { margin-top: 1.2rem; text-align: center; font-size: var(--text-xs); color: var(--c-text-3); }

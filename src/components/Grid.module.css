@@ -1,0 +1,13 @@
+.wrap { padding: 0 var(--safe-x); }
+.title { font-size: var(--text-lg); font-weight: 650; margin-bottom: 0.9rem; }
+.grid {
+  display: grid;
+  gap: 1.6rem var(--row-gap);
+  padding: 0.5rem 0;
+}
+.landscape { grid-template-columns: repeat(auto-fill, minmax(var(--card-w), 1fr)); }
+.poster { grid-template-columns: repeat(auto-fill, minmax(var(--card-poster-w), 1fr)); }
+.cell > * { width: 100%; }
+.sk_landscape { aspect-ratio: 16 / 9; }
+.sk_poster { aspect-ratio: 2 / 3; }
+.empty { color: var(--c-text-3); font-size: var(--text-md); padding: 2rem 0; }

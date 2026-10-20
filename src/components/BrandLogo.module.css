@@ -1,0 +1,29 @@
+.wordmark {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35em;
+  font-family: var(--font-ui);
+  font-weight: 800;
+  letter-spacing: -0.045em;
+  line-height: 1;
+  user-select: none;
+}
+.main {
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  padding-right: 0.04em;
+}
+.kids {
+  font-weight: 800;
+  background: linear-gradient(100deg, #ff6fb5, #ffb547 35%, #42d392 65%, #4aa8ff);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+.sm { font-size: 1.8rem; }
+.md { font-size: 2.4rem; }
+.lg { font-size: 3.4rem; }
+.image.sm { height: 1.8rem; }
+.image.md { height: 2.4rem; }
+.image.lg { height: 3.4rem; }

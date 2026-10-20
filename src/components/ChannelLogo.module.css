@@ -1,0 +1,25 @@
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+  color: #fff;
+  line-height: 1;
+  max-width: 100%;
+  overflow: hidden;
+}
+.mark { flex: none; width: 0.9em; height: 0.9em; }
+.circle { border-radius: 50%; }
+.square { border-radius: 0.15em; }
+.diamond { transform: rotate(45deg) scale(0.8); border-radius: 0.1em; }
+.bar { width: 0.32em; height: 1.2em; border-radius: 0.1em; }
+.wave { border-radius: 50% 0 50% 0; }
+.star { clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
+.text { display: flex; flex-direction: column; min-width: 0; }
+.main { font-weight: 800; letter-spacing: -0.02em; text-transform: uppercase; white-space: nowrap; }
+.rest { font-weight: 500; font-size: 0.62em; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.85; white-space: nowrap; margin-top: 0.15em; overflow: hidden; text-overflow: ellipsis; }
+.sm { font-size: 0.95rem; }
+.md { font-size: 1.25rem; }
+.lg { font-size: 1.8rem; }
+.img.sm { height: 1.4rem; }
+.img.md { height: 2rem; }
+.img.lg { height: 3rem; }
