@@ -16,8 +16,8 @@
 .star { clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
 .text { display: flex; flex-direction: column; min-width: 0; }
 .main { font-weight: 800; letter-spacing: -0.02em; text-transform: uppercase; white-space: nowrap; }
-.rest { font-weight: 500; font-size: 0.62em; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.85; white-space: nowrap; margin-top: 0.15em; overflow: hidden; text-overflow: ellipsis; }
-.sm { font-size: 0.95rem; }
+.rest { font-weight: 500; font-size: 0.7em; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.85; white-space: nowrap; margin-top: 0.15em; overflow: hidden; text-overflow: ellipsis; }
+.sm { font-size: 1.1rem; }
 .md { font-size: 1.25rem; }
 .lg { font-size: 1.8rem; }
 .img.sm { height: 1.4rem; }

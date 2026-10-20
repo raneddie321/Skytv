@@ -41,6 +41,8 @@ const UP_NEXT_SECONDS = 12;
 
 export function PlayerView({ item, session, startAt, profileId, onExit, onPlayNext, onChangeChannel }: PlayerViewProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  /** Survives unmount (React clears videoRef before effect cleanups run), so the final progress save works. */
+  const videoElRef = useRef<HTMLVideoElement | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const engineRef = useRef<PlayerEngine | null>(null);
   const manager = useFocusManager();
@@ -69,7 +71,7 @@ export function PlayerView({ item, session, startAt, profileId, onExit, onPlayNe
   // ------------------------------------------------------------------ progress persistence
   const save = useCallback(
     (forceCompleted?: boolean) => {
-      const v = videoRef.current;
+      const v = videoElRef.current;
       if (!v || isLive || !item.media || !Number.isFinite(v.duration) || v.duration <= 0) return;
       const positionSec = forceCompleted ? v.duration : v.currentTime;
       if (positionSec < 1 && !forceCompleted) return;
@@ -92,6 +94,7 @@ export function PlayerView({ item, session, startAt, profileId, onExit, onPlayNe
   // ------------------------------------------------------------------ engine lifecycle
   useEffect(() => {
     const video = videoRef.current!;
+    videoElRef.current = video;
     const engine = new PlayerEngine(video);
     engineRef.current = engine;
     let cancelled = false;
@@ -300,10 +303,6 @@ export function PlayerView({ item, session, startAt, profileId, onExit, onPlayNe
       seekBy((e.action === 'left' ? -1 : 1) * (e.repeat ? 30 : 10));
       return true;
     }
-    if (focusedId === 'player:volume' && (e.action === 'left' || e.action === 'right')) {
-      setVol(volume + (e.action === 'left' ? -0.1 : 0.1));
-      return true;
-    }
     return false;
   });
 
@@ -432,10 +431,16 @@ export function PlayerView({ item, session, startAt, profileId, onExit, onPlayNe
               <Focusable focusId="player:mute" className={styles.roundButton} aria-label={muted ? 'Unmute' : 'Mute'} onSelect={() => videoRef.current && (videoRef.current.muted = !videoRef.current.muted)}>
                 <Icon name={muted || volume === 0 ? 'volumeMute' : 'volume'} size="1.4rem" />
               </Focusable>
-              <Focusable focusId="player:volume" className={styles.volume} role="slider" aria-label="Volume" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(volume * 100)}>
+              <Focusable focusId="player:voldown" className={styles.roundButton} aria-label="Volume down" onSelect={() => setVol(volume - 0.1)}>
+                <span className={styles.volSign}>−</span>
+              </Focusable>
+              <span className={styles.volume} role="meter" aria-label="Volume" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(volume * 100)}>
                 {Array.from({ length: 10 }, (_, i) => (
                   <span key={i} className={!muted && i < Math.round(volume * 10) ? styles.volOn : ''} />
                 ))}
+              </span>
+              <Focusable focusId="player:volup" className={styles.roundButton} aria-label="Volume up" onSelect={() => setVol(volume + 0.1)}>
+                <span className={styles.volSign}>+</span>
               </Focusable>
               {session.subtitles.length ? (
                 <Focusable focusId="player:subs" className={`${styles.roundButton} ${settings.subtitles.enabled ? styles.on : ''}`} aria-label="Subtitles" onSelect={() => setSubsOpen(true)} data-testid="player-subtitles">

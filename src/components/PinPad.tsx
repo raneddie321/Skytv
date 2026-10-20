@@ -17,7 +17,7 @@ export function PinDialog({
 }: {
   title?: string;
   message?: string;
-  onSuccess: () => void;
+  onSuccess: (pin: string) => void;
   onClose: () => void;
   light?: boolean;
 }) {
@@ -34,7 +34,7 @@ export function PinDialog({
       setChecking(true);
       const ok = await getServices().parental.verifyPin(next).catch(() => false);
       setChecking(false);
-      if (ok) onSuccess();
+      if (ok) onSuccess(next);
       else {
         setError(true);
         setPin('');

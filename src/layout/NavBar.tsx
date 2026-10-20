@@ -63,7 +63,7 @@ export function NavBar() {
       <div className={styles.logo}>
         <BrandLogo size="md" />
       </div>
-      <FocusSection id="nav" enterTo="default" defaultId={`nav:${active?.id ?? 'home'}`} returnFocus block={['up']}>
+      <FocusSection id="nav" enterTo="default" defaultId={`nav:${active?.id ?? 'home'}`} returnFocus excludeFromMemory block={['up']}>
         <nav className={`${styles.pills} no-scrollbar`} aria-label="Main">
           {NAV_ITEMS.map((item) => {
             const isActive = item === active;

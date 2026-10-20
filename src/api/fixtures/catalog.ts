@@ -217,7 +217,7 @@ export class FixtureCatalog implements CatalogService, SearchService, Recommenda
     if (query.mediaType !== 'all') defs = defs.filter((d) => d.type === query.mediaType);
     switch (query.kind) {
       case 'trending':
-        defs = [...defs].sort((a, b) => b.popularity - a.popularity - (a.addedDaysAgo - b.addedDaysAgo) * 0.4);
+        defs = [...defs].sort((a, b) => b.popularity - a.popularity + (a.addedDaysAgo - b.addedDaysAgo) * 0.4);
         break;
       case 'popular':
         defs = [...defs].sort((a, b) => b.popularity - a.popularity);
@@ -310,7 +310,8 @@ export class FixtureCatalog implements CatalogService, SearchService, Recommenda
         // Unknown editorial entries are skipped rather than breaking the whole collection.
       }
     }
-    return this.delay(out);
+    const seen = new Set<string>();
+    return this.delay(out.filter((m) => (seen.has(m.id) ? false : (seen.add(m.id), true))));
   }
 
   async search(query: string, options: { audience?: Audience; page?: number } = {}): Promise<Page<MediaSummary>> {
@@ -326,7 +327,7 @@ export class FixtureCatalog implements CatalogService, SearchService, Recommenda
         if (title.startsWith(q)) score += 100;
         if (title.split(' ').some((w) => w.startsWith(q))) score += 50;
         if (terms.every((t) => haystack.includes(t))) score += 20;
-        if (normalise(d.overview).includes(q)) score += 5;
+        if (normalise(d.overview).split(' ').some((w) => w.startsWith(q))) score += 5;
         return { d, score: score ? score + d.popularity / 100 : 0 };
       })
       .filter((s) => s.score > 0)

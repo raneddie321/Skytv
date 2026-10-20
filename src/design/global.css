@@ -8,7 +8,7 @@
 
 html {
   /* 1rem = viewport/96 wide or /54 tall (whichever is smaller), clamped for very small/large windows */
-  font-size: clamp(12px, min(calc(100vw / 96), calc(100vh / 54)), 48px);
+  font-size: clamp(13px, min(calc(100vw / 96), calc(100vh / 54)), 48px);
   background: var(--c-bg);
   color: var(--c-text);
   -webkit-text-size-adjust: 100%;

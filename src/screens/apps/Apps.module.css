@@ -1,0 +1,10 @@
+.page { padding: calc(var(--nav-h) + var(--safe-top) * 2 + 1.6rem) var(--safe-x) 3rem; min-height: 100vh; }
+.heading { font-size: var(--text-2xl); font-weight: 700; }
+.sub { color: var(--c-text-3); margin: 0.4rem 0 2rem; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr)); gap: 2rem 1.4rem; }
+.tile { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 0.8rem; }
+.icon { width: 100%; aspect-ratio: 16 / 10; border-radius: var(--radius-lg); display: grid; place-items: center; color: #fff; transition: transform var(--dur) var(--ease), box-shadow var(--dur-fast) ease; }
+.tile[data-focused='true'] .icon { transform: scale(1.05); box-shadow: 0 0 0 0.2rem #fff, 0 0.8rem 2rem rgba(0, 0, 0, 0.5); }
+.name { font-weight: 600; color: var(--c-text-2); }
+.tile[data-focused='true'] .name { color: #fff; }
+.dialogText { color: var(--c-text-2); margin-bottom: 1rem; }

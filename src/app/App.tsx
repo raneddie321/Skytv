@@ -196,7 +196,7 @@ export function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <FocusProvider>
-        <BrowserRouter>
+        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <GlobalEffects />
           <AppRoutes />
           <StatusBanner />

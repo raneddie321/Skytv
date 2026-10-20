@@ -1,0 +1,5 @@
+.page { padding: calc(var(--nav-h) + var(--safe-top) * 2 + 1.6rem) 0 3rem; min-height: 100vh; }
+.heading { font-size: var(--text-2xl); font-weight: 700; padding: 0 var(--safe-x); }
+.sub { color: var(--c-text-3); margin: 0.3rem 0 1.6rem; padding: 0 var(--safe-x); }
+.empty { display: flex; flex-direction: column; align-items: flex-start; gap: 1rem; padding: 2rem var(--safe-x); color: var(--c-text-2); max-width: 40rem; }
+.kids .heading { font-size: 2.6rem; font-weight: 800; }

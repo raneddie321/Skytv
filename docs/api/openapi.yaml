@@ -1,0 +1,698 @@
+openapi: 3.0.3
+info:
+  title: Sky Stream Demo — Client API
+  version: 1.0.0
+  description: |
+    REST contract used by the TV application when `DATA_MODE=remote` (see `src/api/remote/services.ts`).
+    A reference implementation backed by the offline demo catalog lives in `server/mockApi.ts` and is mounted at
+    `/api/v1` by the dev/production servers. It is for integration testing only: no persistence, demo auth.
+
+    Conventions
+    - All ids are opaque strings. Catalog ids may contain `:` and must be URL-encoded in paths.
+    - Times are ISO 8601 UTC.
+    - Errors use the `Error` schema with a machine-readable `error` code.
+    - Authenticated requests send `Authorization: Bearer <accessToken>` obtained via the device flow.
+servers:
+  - url: /api/v1
+security:
+  - bearer: []
+tags:
+  - name: Auth
+  - name: Account
+  - name: Profiles
+  - name: Catalog
+  - name: Search
+  - name: Recommendations
+  - name: History
+  - name: Watchlist
+  - name: Live
+  - name: Playback
+  - name: Entitlements
+  - name: Parental
+
+paths:
+  /auth/device:
+    post:
+      tags: [Auth]
+      summary: Start device (TV) sign-in
+      security: []
+      responses:
+        '200':
+          description: Code to show on screen
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DeviceCode' }
+              example: { userCode: DEMO-2026, verificationUrl: 'https://example.com/activate', pollIntervalSec: 5, deviceCode: dev-8f2k1x }
+  /auth/device/token:
+    post:
+      tags: [Auth]
+      summary: Poll for the session after the user approved the code
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [deviceCode], properties: { deviceCode: { type: string } } }
+            example: { deviceCode: dev-8f2k1x }
+      responses:
+        '200':
+          description: Signed in
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthSession' }
+              example: { accountId: acc-123, accessToken: eyJhbGciOi..., expiresAt: '2026-11-20T10:00:00Z', isDemo: false }
+        '202':
+          description: Still waiting for the user
+          content:
+            application/json:
+              example: { status: authorization_pending }
+        '400': { $ref: '#/components/responses/Error' }
+  /auth/session:
+    get:
+      tags: [Auth]
+      summary: Current session
+      responses:
+        '200': { description: Session, content: { application/json: { schema: { $ref: '#/components/schemas/AuthSession' } } } }
+        '401': { $ref: '#/components/responses/Error' }
+    delete:
+      tags: [Auth]
+      summary: Sign out
+      responses: { '204': { description: Signed out } }
+
+  /account:
+    get:
+      tags: [Account]
+      summary: Household account
+      responses:
+        '200':
+          description: Account
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Account' }
+              example: { id: acc-123, email: viewer@example.com, displayName: The Smiths, country: GB, isDemo: false }
+  /subscription:
+    get:
+      tags: [Account]
+      summary: Subscription and packs
+      responses:
+        '200':
+          description: Subscription
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Subscription' }
+              example:
+                plan: Essential
+                renewsOn: '2026-12-01'
+                isDemo: false
+                packs: [{ id: entertainment, name: Entertainment, active: true }, { id: sports, name: Sports, active: false }]
+
+  /profiles:
+    get:
+      tags: [Profiles]
+      summary: List profiles
+      responses:
+        '200':
+          description: Profiles
+          content:
+            application/json:
+              schema: { type: object, properties: { items: { type: array, items: { $ref: '#/components/schemas/Profile' } } } }
+              example: { items: [{ id: p-emma, name: Emma, avatarId: dusk, kind: adult, createdAt: '2025-01-01T00:00:00Z' }] }
+    post:
+      tags: [Profiles]
+      summary: Create a profile (max 6 per household)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProfileInput' }
+            example: { name: Noah, avatarId: ocean, kind: adult }
+      responses:
+        '201': { description: Created, content: { application/json: { schema: { $ref: '#/components/schemas/Profile' } } } }
+        '409': { $ref: '#/components/responses/Error' }
+        '422': { $ref: '#/components/responses/Error' }
+  /profiles/{profileId}:
+    parameters: [{ $ref: '#/components/parameters/profileId' }]
+    patch:
+      tags: [Profiles]
+      summary: Update a profile
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/ProfileInput' }, example: { name: Noah J } } }
+      responses:
+        '200': { description: Updated, content: { application/json: { schema: { $ref: '#/components/schemas/Profile' } } } }
+        '404': { $ref: '#/components/responses/Error' }
+    delete:
+      tags: [Profiles]
+      summary: Delete a profile and its personal data
+      responses: { '204': { description: Deleted } }
+
+  /catalog/rails:
+    get:
+      tags: [Catalog]
+      summary: A page of titles for a rail
+      parameters:
+        - { name: kind, in: query, required: true, schema: { type: string, enum: [trending, popular, top_rated, recently_added, genre] } }
+        - { name: mediaType, in: query, required: true, schema: { type: string, enum: [movie, tv, all] } }
+        - { name: genreId, in: query, schema: { type: string } }
+        - { name: page, in: query, schema: { type: integer, minimum: 1, default: 1 } }
+        - { $ref: '#/components/parameters/audience' }
+      responses:
+        '200':
+          description: Page of titles
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MediaPage' }
+              example:
+                page: 1
+                totalPages: 3
+                items:
+                  - id: 'demo:tv:kingsgate'
+                    type: tv
+                    title: Kingsgate
+                    overview: When the head of a London crime family is shot…
+                    year: 2025
+                    genres: [{ id: crime, name: Crime }]
+                    rating: 8.4
+                    certification: '18'
+                    posterUrl: /demo-art/titles/kingsgate/poster.webp
+                    backdropUrl: /demo-art/titles/kingsgate/backdrop.webp
+                    titleStyle: wide
+                    kidsSafe: false
+                    source: demo
+  /catalog/featured:
+    get:
+      tags: [Catalog]
+      summary: Hero / billboard titles
+      parameters:
+        - { name: context, in: query, required: true, schema: { type: string, enum: [home, tv, movies, kids] } }
+      responses:
+        '200': { description: Featured, content: { application/json: { schema: { $ref: '#/components/schemas/MediaList' } } } }
+  /catalog/genres:
+    get:
+      tags: [Catalog]
+      summary: Genres for a media type
+      parameters:
+        - { name: mediaType, in: query, required: true, schema: { type: string, enum: [movie, tv] } }
+        - { $ref: '#/components/parameters/audience' }
+      responses:
+        '200':
+          description: Genres
+          content:
+            application/json:
+              schema: { type: object, properties: { items: { type: array, items: { $ref: '#/components/schemas/Genre' } } } }
+              example: { items: [{ id: crime, name: Crime }, { id: drama, name: Drama }] }
+  /catalog/movies/{id}:
+    get:
+      tags: [Catalog]
+      summary: Movie details
+      parameters: [{ $ref: '#/components/parameters/titleId' }]
+      responses:
+        '200': { description: Movie, content: { application/json: { schema: { $ref: '#/components/schemas/MovieDetail' } } } }
+        '404': { $ref: '#/components/responses/Error' }
+  /catalog/series/{id}:
+    get:
+      tags: [Catalog]
+      summary: Series details with season list
+      parameters: [{ $ref: '#/components/parameters/titleId' }]
+      responses:
+        '200': { description: Series, content: { application/json: { schema: { $ref: '#/components/schemas/SeriesDetail' } } } }
+        '404': { $ref: '#/components/responses/Error' }
+  /catalog/series/{id}/seasons/{seasonNumber}:
+    get:
+      tags: [Catalog]
+      summary: Episodes of a season
+      parameters:
+        - { $ref: '#/components/parameters/titleId' }
+        - { name: seasonNumber, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      responses:
+        '200':
+          description: Season
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SeasonDetail' }
+              example:
+                seriesId: 'demo:tv:kingsgate'
+                seasonNumber: 1
+                name: Season 1
+                episodes:
+                  - { id: 'demo:tv:kingsgate:s1e1', seriesId: 'demo:tv:kingsgate', seasonNumber: 1, episodeNumber: 1, title: Blood Money, overview: An unexpected arrival…, runtimeMinutes: 58, stillUrl: /demo-art/titles/kingsgate/still-4.webp, airDate: '2023-01-01' }
+        '404': { $ref: '#/components/responses/Error' }
+  /catalog/collections/resolve:
+    post:
+      tags: [Catalog]
+      summary: Resolve editorial collection entries (ids or exact title lookups)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, properties: { entries: { type: array, items: { $ref: '#/components/schemas/CollectionEntry' } } } }
+            example: { entries: [{ id: 'demo:tv:kingsgate' }, { lookup: { type: tv, title: Saltmarsh } }] }
+      responses:
+        '200': { description: Resolved titles (unknown entries are skipped), content: { application/json: { schema: { $ref: '#/components/schemas/MediaList' } } } }
+  /catalog/titles/{id}/similar:
+    get:
+      tags: [Recommendations]
+      summary: More like this
+      parameters: [{ $ref: '#/components/parameters/titleId' }]
+      responses:
+        '200': { description: Similar titles, content: { application/json: { schema: { $ref: '#/components/schemas/MediaList' } } } }
+  /search:
+    get:
+      tags: [Search]
+      summary: Search films and series
+      parameters:
+        - { name: q, in: query, required: true, schema: { type: string, minLength: 1, maxLength: 100 } }
+        - { $ref: '#/components/parameters/audience' }
+        - { name: page, in: query, schema: { type: integer, minimum: 1, default: 1 } }
+      responses:
+        '200': { description: Results, content: { application/json: { schema: { $ref: '#/components/schemas/MediaPage' } } } }
+  /recommendations:
+    post:
+      tags: [Recommendations]
+      summary: Personalised recommendations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                seeds: { type: array, items: { type: string }, description: Recently watched / saved title ids, most recent first }
+                audience: { type: string, enum: [all, kids] }
+            example: { seeds: ['demo:tv:kingsgate', 'demo:movie:ember-city'], audience: all }
+      responses:
+        '200': { description: Recommendations, content: { application/json: { schema: { $ref: '#/components/schemas/MediaList' } } } }
+
+  /profiles/{profileId}/history:
+    parameters: [{ $ref: '#/components/parameters/profileId' }]
+    get:
+      tags: [History]
+      summary: Watch progress records
+      responses:
+        '200':
+          description: Records
+          content: { application/json: { schema: { type: object, properties: { items: { type: array, items: { $ref: '#/components/schemas/ProgressRecord' } } } } } }
+        '404': { $ref: '#/components/responses/Error' }
+  /profiles/{profileId}/history/{key}:
+    parameters:
+      - { $ref: '#/components/parameters/profileId' }
+      - { name: key, in: path, required: true, description: '`movie:<id>` or `episode:<seriesId>:<season>:<episode>` (URL-encoded)', schema: { type: string } }
+    put:
+      tags: [History]
+      summary: Upsert progress (sent every few seconds during playback, on pause and on exit)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProgressRecord' }
+            example:
+              key: 'episode:demo:tv:kingsgate:1:2'
+              media: { id: 'demo:tv:kingsgate', type: tv, title: Kingsgate, backdropUrl: /demo-art/titles/kingsgate/backdrop.webp }
+              episode: { id: 'demo:tv:kingsgate:s1e2', seasonNumber: 1, episodeNumber: 2, title: The Ferryman }
+              nextEpisode: { id: 'demo:tv:kingsgate:s1e3', seasonNumber: 1, episodeNumber: 3, title: Low Tide }
+              positionSec: 1312.4
+              durationSec: 3480
+              completed: false
+              updatedAt: '2026-10-20T19:20:00Z'
+      responses:
+        '200': { description: Stored, content: { application/json: { schema: { $ref: '#/components/schemas/ProgressRecord' } } } }
+        '422': { $ref: '#/components/responses/Error' }
+    delete:
+      tags: [History]
+      summary: Remove a record (e.g. "remove from Continue Watching")
+      responses: { '204': { description: Removed } }
+  /profiles/{profileId}/watchlist:
+    parameters: [{ $ref: '#/components/parameters/profileId' }]
+    get:
+      tags: [Watchlist]
+      summary: Saved titles, newest first
+      responses:
+        '200': { description: Watchlist, content: { application/json: { schema: { type: object, properties: { items: { type: array, items: { $ref: '#/components/schemas/MediaRef' } } } } } } }
+        '404': { $ref: '#/components/responses/Error' }
+  /profiles/{profileId}/watchlist/{id}:
+    parameters:
+      - { $ref: '#/components/parameters/profileId' }
+      - { $ref: '#/components/parameters/titleId' }
+    put:
+      tags: [Watchlist]
+      summary: Add (idempotent)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/MediaRef' }
+            example: { id: 'demo:movie:summit', type: movie, title: Summit, posterUrl: /demo-art/titles/summit/poster.webp }
+      responses:
+        '200': { description: Added, content: { application/json: { schema: { $ref: '#/components/schemas/MediaRef' } } } }
+    delete:
+      tags: [Watchlist]
+      summary: Remove
+      responses: { '204': { description: Removed } }
+
+  /live/channels:
+    get:
+      tags: [Live]
+      summary: Channel line-up available to the account
+      responses:
+        '200':
+          description: Channels
+          content:
+            application/json:
+              schema: { type: object, properties: { items: { type: array, items: { $ref: '#/components/schemas/Channel' } } } }
+              example: { items: [{ id: meridian-one, number: 101, name: Meridian One, category: entertainment, hd: true, logoUrl: 'https://cdn.example.com/logos/101.svg', isDemo: false }] }
+  /live/schedule:
+    get:
+      tags: [Live]
+      summary: EPG for channels within a time window (max 7 days)
+      parameters:
+        - { name: channelIds, in: query, required: true, description: Comma-separated channel ids, schema: { type: string } }
+        - { name: from, in: query, required: true, schema: { type: string, format: date-time } }
+        - { name: to, in: query, required: true, schema: { type: string, format: date-time } }
+      responses:
+        '200':
+          description: Programmes keyed by channel id, sorted by start
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  schedule: { type: object, additionalProperties: { type: array, items: { $ref: '#/components/schemas/Programme' } } }
+              example:
+                schedule:
+                  meridian-one:
+                    - { id: 'meridian-one:1792491000000', channelId: meridian-one, title: The Final Question, subtitle: Show 16, synopsis: Four contestants…, start: '2026-10-20T18:30:00Z', end: '2026-10-20T19:30:00Z', imageUrl: /demo-art/programmes/quiz-show.webp, certification: PG, isLive: false, isDemo: true }
+        '422': { $ref: '#/components/responses/Error' }
+
+  /playback/sessions:
+    post:
+      tags: [Playback]
+      summary: Create a playback session (authorises playback and returns stream URLs)
+      description: |
+        The server checks entitlements, concurrency and parental rules and returns short-lived stream URLs.
+        DRM-protected sources carry `drm` (license server + headers). The client picks the first source the device
+        can play (native HLS, hls.js over MSE, progressive).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [profileId, content], properties: { profileId: { type: string }, content: { $ref: '#/components/schemas/PlaybackContent' } } }
+            example: { profileId: p-emma, content: { kind: episode, seriesId: 'demo:tv:kingsgate', seasonNumber: 1, episodeNumber: 2 } }
+      responses:
+        '201':
+          description: Session
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PlaybackSession' }
+              example:
+                sessionId: ps-lk2j3
+                content: { kind: episode, seriesId: 'demo:tv:kingsgate', seasonNumber: 1, episodeNumber: 2 }
+                sources:
+                  - { url: 'https://cdn.example.com/v/abc/master.m3u8?token=…', protocol: hls, mimeType: application/vnd.apple.mpegurl, codecs: 'avc1.640028,mp4a.40.2' }
+                  - { url: 'https://cdn.example.com/v/abc/manifest.mpd?token=…', protocol: dash, mimeType: application/dash+xml, drm: { system: widevine, licenseUrl: 'https://license.example.com/wv' } }
+                subtitles: [{ id: en, language: en, label: English, url: 'https://cdn.example.com/v/abc/en.vtt', kind: subtitles }]
+                isSample: false
+                isLive: false
+                heartbeatIntervalSec: 30
+                expiresAt: '2026-10-20T23:20:00Z'
+        '403': { $ref: '#/components/responses/Error' }
+        '409': { description: Concurrent stream limit reached, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+  /playback/sessions/{sessionId}/heartbeat:
+    post:
+      tags: [Playback]
+      summary: Keep-alive with current position
+      parameters: [{ name: sessionId, in: path, required: true, schema: { type: string } }]
+      requestBody: { content: { application/json: { schema: { type: object, properties: { positionSec: { type: number } } }, example: { positionSec: 812.5 } } } }
+      responses: { '204': { description: OK } }
+  /playback/sessions/{sessionId}:
+    delete:
+      tags: [Playback]
+      summary: End session (frees a concurrency slot)
+      parameters: [{ name: sessionId, in: path, required: true, schema: { type: string } }]
+      responses: { '204': { description: Ended } }
+
+  /entitlements/check:
+    post:
+      tags: [Entitlements]
+      summary: Is the profile allowed to play this content?
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, properties: { profileId: { type: string }, content: { $ref: '#/components/schemas/PlaybackContent' } } }
+            example: { profileId: p-emma, content: { kind: channel, channelId: pitch-main-event } }
+      responses:
+        '200':
+          description: Entitlement
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Entitlement' }
+              example: { contentId: pitch-main-event, entitled: false, reason: not_subscribed, requiredPack: sports }
+
+  /parental/pin/verify:
+    post:
+      tags: [Parental]
+      summary: Verify the household PIN (rate-limit on the server)
+      requestBody: { required: true, content: { application/json: { schema: { type: object, properties: { pin: { type: string, pattern: '^\d{4}$' } } }, example: { pin: '1234' } } } }
+      responses: { '200': { description: Result, content: { application/json: { example: { valid: true } } } } }
+  /parental/pin:
+    put:
+      tags: [Parental]
+      summary: Change the PIN
+      requestBody: { required: true, content: { application/json: { example: { currentPin: '1234', newPin: '2468' } } } }
+      responses: { '200': { description: Result, content: { application/json: { example: { ok: true } } } } }
+  /parental/settings:
+    get:
+      tags: [Parental]
+      summary: Parental settings
+      responses: { '200': { description: Settings, content: { application/json: { schema: { $ref: '#/components/schemas/ParentalSettings' } } } } }
+    put:
+      tags: [Parental]
+      summary: Update parental settings
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/ParentalSettings' }, example: { kidsMaxCertification: U, pinFor18: true } } } }
+      responses: { '200': { description: Updated, content: { application/json: { schema: { $ref: '#/components/schemas/ParentalSettings' } } } } }
+
+components:
+  securitySchemes:
+    bearer: { type: http, scheme: bearer }
+  parameters:
+    profileId: { name: profileId, in: path, required: true, schema: { type: string } }
+    titleId: { name: id, in: path, required: true, description: URL-encoded title id, schema: { type: string } }
+    audience: { name: audience, in: query, schema: { type: string, enum: [all, kids], default: all } }
+  responses:
+    Error:
+      description: Error
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example: { error: not_found, message: 'Not found: demo:movie:nope' }
+  schemas:
+    Error:
+      type: object
+      required: [error, message]
+      properties: { error: { type: string }, message: { type: string } }
+    DeviceCode:
+      type: object
+      properties: { userCode: { type: string }, verificationUrl: { type: string }, pollIntervalSec: { type: integer }, deviceCode: { type: string } }
+    AuthSession:
+      type: object
+      required: [accountId, accessToken, expiresAt]
+      properties: { accountId: { type: string }, accessToken: { type: string }, expiresAt: { type: string, format: date-time }, isDemo: { type: boolean } }
+    Account:
+      type: object
+      properties: { id: { type: string }, email: { type: string }, displayName: { type: string }, country: { type: string }, isDemo: { type: boolean } }
+    Subscription:
+      type: object
+      properties:
+        plan: { type: string }
+        renewsOn: { type: string, format: date }
+        isDemo: { type: boolean }
+        packs: { type: array, items: { type: object, properties: { id: { type: string }, name: { type: string }, active: { type: boolean } } } }
+    Profile:
+      type: object
+      required: [id, name, avatarId, kind]
+      properties:
+        id: { type: string }
+        name: { type: string, maxLength: 20 }
+        avatarId: { type: string }
+        kind: { type: string, enum: [adult, kids] }
+        createdAt: { type: string, format: date-time }
+    ProfileInput:
+      type: object
+      properties: { name: { type: string, maxLength: 20 }, avatarId: { type: string }, kind: { type: string, enum: [adult, kids] } }
+    Genre:
+      type: object
+      properties: { id: { type: string }, name: { type: string } }
+    MediaSummary:
+      type: object
+      required: [id, type, title, overview, genres, source]
+      properties:
+        id: { type: string }
+        type: { type: string, enum: [movie, tv] }
+        title: { type: string }
+        overview: { type: string }
+        year: { type: integer }
+        genres: { type: array, items: { $ref: '#/components/schemas/Genre' } }
+        rating: { type: number, description: 0-10 }
+        certification: { type: string, example: '15' }
+        posterUrl: { type: string }
+        backdropUrl: { type: string }
+        titleStyle: { type: string, enum: [sans, condensed, serif, wide] }
+        badges: { type: array, items: { type: string, enum: [original, new, new-episodes, sample] } }
+        kidsSafe: { type: boolean }
+        source: { type: string, enum: [tmdb, demo, remote] }
+    MediaPage:
+      type: object
+      properties: { items: { type: array, items: { $ref: '#/components/schemas/MediaSummary' } }, page: { type: integer }, totalPages: { type: integer } }
+    MediaList:
+      type: object
+      properties: { items: { type: array, items: { $ref: '#/components/schemas/MediaSummary' } } }
+    CastMember:
+      type: object
+      properties: { id: { type: string }, name: { type: string }, character: { type: string }, profileUrl: { type: string } }
+    MovieDetail:
+      allOf:
+        - $ref: '#/components/schemas/MediaSummary'
+        - type: object
+          properties:
+            runtimeMinutes: { type: integer }
+            tagline: { type: string }
+            cast: { type: array, items: { $ref: '#/components/schemas/CastMember' } }
+            directors: { type: array, items: { type: string } }
+    SeriesDetail:
+      allOf:
+        - $ref: '#/components/schemas/MediaSummary'
+        - type: object
+          properties:
+            seasons:
+              type: array
+              items: { type: object, properties: { seasonNumber: { type: integer }, name: { type: string }, episodeCount: { type: integer }, posterUrl: { type: string }, year: { type: integer } } }
+            cast: { type: array, items: { $ref: '#/components/schemas/CastMember' } }
+            creators: { type: array, items: { type: string } }
+            status: { type: string }
+            episodeRuntimeMinutes: { type: integer }
+    Episode:
+      type: object
+      properties:
+        id: { type: string }
+        seriesId: { type: string }
+        seasonNumber: { type: integer }
+        episodeNumber: { type: integer }
+        title: { type: string }
+        overview: { type: string }
+        runtimeMinutes: { type: integer }
+        stillUrl: { type: string }
+        airDate: { type: string, format: date }
+    SeasonDetail:
+      type: object
+      properties:
+        seriesId: { type: string }
+        seasonNumber: { type: integer }
+        name: { type: string }
+        overview: { type: string }
+        episodes: { type: array, items: { $ref: '#/components/schemas/Episode' } }
+    CollectionEntry:
+      oneOf:
+        - { type: object, required: [id], properties: { id: { type: string } } }
+        - type: object
+          required: [lookup]
+          properties: { lookup: { type: object, properties: { type: { type: string, enum: [movie, tv] }, title: { type: string }, year: { type: integer } } } }
+    MediaRef:
+      type: object
+      required: [id, type, title]
+      properties:
+        id: { type: string }
+        type: { type: string, enum: [movie, tv] }
+        title: { type: string }
+        posterUrl: { type: string }
+        backdropUrl: { type: string }
+        year: { type: integer }
+        titleStyle: { type: string }
+        kidsSafe: { type: boolean }
+    EpisodeRef:
+      type: object
+      properties: { id: { type: string }, seasonNumber: { type: integer }, episodeNumber: { type: integer }, title: { type: string }, stillUrl: { type: string }, runtimeMinutes: { type: integer } }
+    ProgressRecord:
+      type: object
+      required: [key, media, positionSec, durationSec, completed, updatedAt]
+      properties:
+        key: { type: string }
+        media: { $ref: '#/components/schemas/MediaRef' }
+        episode: { $ref: '#/components/schemas/EpisodeRef' }
+        nextEpisode: { $ref: '#/components/schemas/EpisodeRef' }
+        positionSec: { type: number }
+        durationSec: { type: number }
+        completed: { type: boolean }
+        updatedAt: { type: string, format: date-time }
+    Channel:
+      type: object
+      required: [id, number, name, category]
+      properties:
+        id: { type: string }
+        number: { type: integer }
+        name: { type: string }
+        category: { type: string, enum: [entertainment, drama, movies, sport, news, documentaries, kids, music] }
+        logoUrl: { type: string }
+        hd: { type: boolean }
+        isDemo: { type: boolean }
+    Programme:
+      type: object
+      required: [id, channelId, title, start, end]
+      properties:
+        id: { type: string }
+        channelId: { type: string }
+        title: { type: string }
+        subtitle: { type: string }
+        synopsis: { type: string }
+        start: { type: string, format: date-time }
+        end: { type: string, format: date-time }
+        imageUrl: { type: string }
+        certification: { type: string }
+        catalogId: { type: string, description: On-demand catalog id when available }
+        isLive: { type: boolean }
+        isDemo: { type: boolean }
+    PlaybackContent:
+      oneOf:
+        - { type: object, required: [kind, id], properties: { kind: { type: string, enum: [movie] }, id: { type: string } } }
+        - { type: object, required: [kind, seriesId, seasonNumber, episodeNumber], properties: { kind: { type: string, enum: [episode] }, seriesId: { type: string }, seasonNumber: { type: integer }, episodeNumber: { type: integer } } }
+        - { type: object, required: [kind, channelId], properties: { kind: { type: string, enum: [channel] }, channelId: { type: string } } }
+    StreamSource:
+      type: object
+      required: [url, protocol, mimeType]
+      properties:
+        url: { type: string }
+        protocol: { type: string, enum: [hls, dash, progressive] }
+        mimeType: { type: string }
+        codecs: { type: string, description: RFC 6381 codec string }
+        drm:
+          type: object
+          properties:
+            system: { type: string, enum: [widevine, playready, fairplay] }
+            licenseUrl: { type: string }
+            headers: { type: object, additionalProperties: { type: string } }
+    SubtitleTrack:
+      type: object
+      properties: { id: { type: string }, language: { type: string }, label: { type: string }, url: { type: string }, kind: { type: string, enum: [subtitles, captions] } }
+    PlaybackSession:
+      type: object
+      required: [sessionId, content, sources, subtitles, isSample, isLive, heartbeatIntervalSec, expiresAt]
+      properties:
+        sessionId: { type: string }
+        content: { $ref: '#/components/schemas/PlaybackContent' }
+        sources: { type: array, items: { $ref: '#/components/schemas/StreamSource' } }
+        subtitles: { type: array, items: { $ref: '#/components/schemas/SubtitleTrack' } }
+        isSample: { type: boolean }
+        isLive: { type: boolean }
+        heartbeatIntervalSec: { type: integer }
+        expiresAt: { type: string, format: date-time }
+    Entitlement:
+      type: object
+      properties:
+        contentId: { type: string }
+        entitled: { type: boolean }
+        reason: { type: string, enum: [not_subscribed, geo_blocked, parental_lock, concurrency_limit] }
+        requiredPack: { type: string }
+    ParentalSettings:
+      type: object
+      properties:
+        kidsMaxCertification: { type: string, enum: [U, PG] }
+        pinFor18: { type: boolean }

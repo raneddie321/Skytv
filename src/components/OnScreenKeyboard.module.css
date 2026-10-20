@@ -21,3 +21,4 @@
   color: var(--c-on-focus);
 }
 :global(.theme-kids) .key { background: #fff; box-shadow: 0 0.12rem 0.4rem rgba(40, 60, 140, 0.1); }
+:global(.theme-kids) .key[data-focused='true'] { background: var(--c-focus); color: var(--c-on-focus); box-shadow: none; }

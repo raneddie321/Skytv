@@ -62,7 +62,7 @@
   height: 1.45rem;
   padding: 0 0.55rem;
   border-radius: var(--radius-xs);
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -95,3 +95,4 @@
   font-size: var(--text-sm);
   color: var(--c-text-3);
 }
+:global(.theme-kids) .pill[data-focused='true'] { background: var(--c-focus); color: var(--c-on-focus); box-shadow: var(--focus-ring); }

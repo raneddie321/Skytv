@@ -45,7 +45,7 @@ export function SeriesDetailView({ id, kids = false }: { id: string; kids?: bool
         ? target.season
         : firstSeason;
   const season = useSeason(id, selectedSeason);
-  const episodes = season.data?.seasonNumber === selectedSeason ? season.data.episodes : undefined;
+  const episodes = season.data && season.data.seasonNumber === selectedSeason ? season.data.episodes : undefined;
 
   const focusEpisode = target && target.season === selectedSeason ? target.episode : episodes?.[0]?.episodeNumber;
   const screenKey = `series:${id}`;
@@ -110,7 +110,7 @@ export function SeriesDetailView({ id, kids = false }: { id: string; kids?: bool
       </header>
 
       <section className={styles.episodesBlock} data-scroll-anchor aria-label="Episodes">
-        <FocusSection id="seasons" enterTo="last">
+        <FocusSection id="seasons" enterTo="default" defaultId={`season:${selectedSeason}`}>
           <div className={`${styles.seasons} no-scrollbar`} data-scroll-x role="tablist" aria-label="Seasons">
             {seasons.map((se) => (
               <Focusable

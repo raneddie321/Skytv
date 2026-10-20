@@ -33,6 +33,8 @@ export interface SectionOptions {
   block?: Direction[];
   /** When leaving, return to the element focus came from (navigation bar behaviour). */
   returnFocus?: boolean;
+  /** Persistent chrome (navigation bars): never stored as a screen's remembered focus. */
+  excludeFromMemory?: boolean;
 }
 
 interface SectionState extends SectionOptions {
@@ -162,6 +164,10 @@ export class FocusManager {
     return r.width > 0 || r.height > 0;
   }
 
+  private isChrome(e: Entry): boolean {
+    return !!(e.sectionId && this.sections.get(e.sectionId)?.excludeFromMemory);
+  }
+
   private pool(): Entry[] {
     return [...this.entries.values()].filter((e) => this.usable(e));
   }
@@ -180,7 +186,7 @@ export class FocusManager {
   }
 
   // ------------------------------------------------------------------ focusing
-  focus(id: string, opts: { scroll?: boolean; pointer?: boolean } = {}): boolean {
+  focus(id: string, opts: { scroll?: boolean; pointer?: boolean; remember?: boolean } = {}): boolean {
     const entry = this.entries.get(id);
     if (!this.usable(entry)) return false;
     const prevId = this.currentId;
@@ -196,14 +202,12 @@ export class FocusManager {
         entry.el.focus();
       }
     }
-    if (entry.sectionId) {
-      const sec = this.sections.get(entry.sectionId);
-      if (sec) {
-        if (sec.returnFocus && prev && prev.sectionId !== entry.sectionId) sec.cameFromId = prev.id;
-        sec.lastFocusedId = id;
-      }
+    const sec = entry.sectionId ? this.sections.get(entry.sectionId) : undefined;
+    if (sec) {
+      if (sec.returnFocus && prev && prev.sectionId !== entry.sectionId) sec.cameFromId = prev.id;
+      sec.lastFocusedId = id;
     }
-    if (this.screenKey && entry.layerId === 'root') this.memory.set(this.screenKey, id);
+    if (this.screenKey && entry.layerId === 'root' && !sec?.excludeFromMemory && opts.remember !== false) this.memory.set(this.screenKey, id);
     if (opts.scroll !== false && !opts.pointer) ensureVisible(entry.el, this.smoothScroll);
     this.lastRect = FocusManager.rect(entry.el);
     if (prevId !== id) {
@@ -234,7 +238,7 @@ export class FocusManager {
   focusFirst(sectionId?: string): boolean {
     const candidates = this.domOrder(this.pool().filter((e) => !sectionId || e.sectionId === sectionId));
     // Prefer content over the navigation bar when landing on a screen.
-    const preferred = candidates.find((e) => e.sectionId !== 'nav') ?? candidates[0];
+    const preferred = candidates.find((e) => !this.isChrome(e)) ?? candidates[0];
     return preferred ? this.focus(preferred.id) : false;
   }
 
@@ -266,8 +270,9 @@ export class FocusManager {
           })
           .sort((a, b) => a.d - b.d)[0]?.e;
       };
-      const target = nearest(pool.filter((e) => e.sectionId && e.sectionId === removed.sectionId)) ?? nearest(pool.filter((e) => e.sectionId !== 'nav')) ?? pool[0];
-      if (target) this.focus(target.id);
+      const target = nearest(pool.filter((e) => e.sectionId && e.sectionId === removed.sectionId)) ?? nearest(pool.filter((e) => !this.isChrome(e))) ?? pool[0];
+      // Automatic recovery must not overwrite the screen's remembered focus (screens may be mid-transition).
+      if (target) this.focus(target.id, { remember: false });
       else {
         this.currentId = null;
         this.notify();

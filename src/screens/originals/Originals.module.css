@@ -1,0 +1,3 @@
+.page { padding-bottom: 3rem; }
+.rows { position: relative; margin-top: -0.8rem; }
+.note { padding: 0 var(--safe-x); color: var(--c-text-3); font-size: var(--text-sm); }

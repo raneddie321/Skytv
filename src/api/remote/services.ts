@@ -64,7 +64,10 @@ export function createRemoteServices(baseUrl: string): Omit<Services, 'mode'> {
       getSession: () => api.request<AuthSession>('/auth/session').then(remember).catch(() => null),
       startDeviceSignIn: () => api.request('/auth/device', { method: 'POST' }),
       pollDeviceSignIn: (deviceCode) =>
-        api.request<AuthSession | undefined>('/auth/device/token', { method: 'POST', body: { deviceCode } }).then((s) => remember(s ?? null)),
+        api
+          .request<AuthSession | { status: 'authorization_pending' } | undefined>('/auth/device/token', { method: 'POST', body: { deviceCode } })
+          // 202 { status: 'authorization_pending' } → keep polling
+          .then((s) => remember(s && 'accessToken' in s ? s : null)),
       signOut: async () => {
         await api.request('/auth/session', { method: 'DELETE' });
         api.token = null;

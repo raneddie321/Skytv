@@ -79,10 +79,10 @@
 
 .controls { display: flex; align-items: center; justify-content: space-between; }
 .group { display: flex; align-items: center; gap: 0.8rem; }
-.volume { display: flex; align-items: flex-end; gap: 0.18rem; height: 3.1rem; padding: 0 0.9rem; border-radius: var(--radius-pill); }
+.volume { display: flex; align-items: center; gap: 0.18rem; height: 3.1rem; padding: 0 0.2rem; }
 .volume span { width: 0.32rem; height: 0.5rem; border-radius: 0.1rem; background: rgba(255, 255, 255, 0.25); align-self: center; }
 .volume .volOn { background: #fff; }
-.volume[data-focused='true'] { background: rgba(255, 255, 255, 0.16); box-shadow: inset 0 0 0 0.14rem #fff; }
+.volSign { font-size: 1.6rem; font-weight: 500; line-height: 1; }
 
 .liveInfo { display: flex; align-items: center; gap: 1.6rem; margin-bottom: 1.4rem; }
 .liveText { flex: 1; min-width: 0; }

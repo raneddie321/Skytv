@@ -12,11 +12,10 @@ FONT_R=/usr/share/fonts/opentype/inter/Inter-Regular.otf
 [ -f "$FONT_R" ] || FONT_R=$(fc-match -f '%{file}' 'sans')
 
 VF="[0:v]format=yuv420p,
-drawbox=x=0:y=ih*0.82:w=iw:h=ih*0.18:color=black@0.35:t=fill,
 drawtext=fontfile=$FONT:text='SAMPLE VIDEO':fontsize=h/9:fontcolor=white:x=(w-text_w)/2:y=h*0.34,
 drawtext=fontfile=$FONT_R:text='Demo playback - not the selected programme':fontsize=h/26:fontcolor=white@0.8:x=(w-text_w)/2:y=h*0.5,
-drawtext=fontfile=$FONT_R:text='%{pts\:hms}':fontsize=h/22:fontcolor=white@0.9:x=w*0.06:y=h*0.88,
-drawtext=fontfile=$FONT_R:text='Generated test signal':fontsize=h/30:fontcolor=white@0.6:x=w*0.94-text_w:y=h*0.885"
+drawtext=fontfile=$FONT_R:text='%{pts\:hms}':fontsize=h/22:fontcolor=white@0.85:x=(w-text_w)/2:y=h*0.6,
+drawtext=fontfile=$FONT_R:text='Generated test signal':fontsize=h/32:fontcolor=white@0.55:x=(w-text_w)/2:y=h*0.67"
 
 SRC="gradients=s=1280x720:c0=0x0b1a3a:c1=0x3a1d5c:c2=0x0e3b4a:c3=0x1a0f2e:nb_colors=4:speed=0.012:duration=$DUR:rate=25"
 

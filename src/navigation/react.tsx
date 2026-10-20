@@ -8,10 +8,9 @@ import {
   useMemo,
   useRef,
   useSyncExternalStore,
-  type ComponentPropsWithoutRef,
   type ElementType,
+  type HTMLAttributes,
   type ReactNode,
-  type Ref,
 } from 'react';
 import { focusManager, type ActionListener, type FocusManager, type SectionOptions } from './FocusManager';
 import { registerPlatformKeys } from './keymap';
@@ -46,7 +45,7 @@ export const useFocusManager = () => useContext(Ctx).manager;
 type SectionProps = Omit<SectionOptions, 'layerId' | 'defaultId'> & { children: ReactNode; defaultId?: string };
 
 /** Groups focusables (row, grid, toolbar). Renders no DOM. */
-export function FocusSection({ id, enterTo, defaultId, block, returnFocus, children }: SectionProps) {
+export function FocusSection({ id, enterTo, defaultId, block, returnFocus, excludeFromMemory, children }: SectionProps) {
   const parent = useContext(Ctx);
   const defaultRef = useRef(defaultId);
   defaultRef.current = defaultId;
@@ -59,10 +58,11 @@ export function FocusSection({ id, enterTo, defaultId, block, returnFocus, child
         enterTo,
         block,
         returnFocus,
+        excludeFromMemory,
         defaultId: () => defaultRef.current,
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [parent.manager, parent.layerId, id, enterTo, blockKey, returnFocus],
+    [parent.manager, parent.layerId, id, enterTo, blockKey, returnFocus, excludeFromMemory],
   );
   const value = useMemo(() => ({ ...parent, sectionId: id }), [parent, id]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
@@ -121,8 +121,10 @@ export function useFocusable<T extends HTMLElement = HTMLElement>({ id, onSelect
   const props = {
     tabIndex: -1,
     'data-focus-id': id,
-    onMouseEnter: () => {
-      if (!handlers.current.disabled) manager.focus(id, { pointer: true });
+    // Pointer remotes (e.g. LG Magic Remote) and mice: follow real movement only. Chromium also fires synthetic
+    // hover events when content moves under a resting cursor, which must not steal remote-control focus.
+    onMouseMove: (e: { movementX: number; movementY: number }) => {
+      if ((e.movementX || e.movementY) && !handlers.current.disabled && manager.currentId !== id) manager.focus(id, { pointer: true });
     },
     onClick: (e: { preventDefault: () => void }) => {
       e.preventDefault();
@@ -134,18 +136,18 @@ export function useFocusable<T extends HTMLElement = HTMLElement>({ id, onSelect
   return { ref, focused, props };
 }
 
-type FocusableProps<E extends ElementType> = {
-  as?: E;
+type FocusableProps = {
+  as?: ElementType;
   focusId: string;
   onSelect?: () => void;
   onFocused?: () => void;
   disabled?: boolean;
-} & Omit<ComponentPropsWithoutRef<E>, 'onSelect' | 'disabled'>;
+} & Omit<HTMLAttributes<HTMLElement>, 'onSelect'>;
 
 /** Convenience wrapper: renders `as` (default <button>) registered with the focus manager. */
-export const Focusable = forwardRef(function Focusable<E extends ElementType = 'button'>(
-  { as, focusId, onSelect, onFocused, disabled, ...rest }: FocusableProps<E>,
-  forwarded: Ref<HTMLElement>,
+export const Focusable = forwardRef<HTMLElement, FocusableProps>(function Focusable(
+  { as, focusId, onSelect, onFocused, disabled, ...rest },
+  forwarded,
 ) {
   const Comp = (as ?? 'button') as ElementType;
   const { ref, props } = useFocusable<HTMLElement>({ id: focusId, onSelect, onFocus: onFocused, disabled });
@@ -153,7 +155,7 @@ export const Focusable = forwardRef(function Focusable<E extends ElementType = '
     (el: HTMLElement | null) => {
       ref.current = el;
       if (typeof forwarded === 'function') forwarded(el);
-      else if (forwarded) (forwarded as { current: HTMLElement | null }).current = el;
+      else if (forwarded) forwarded.current = el;
     },
     [ref, forwarded],
   );
@@ -166,7 +168,7 @@ export const Focusable = forwardRef(function Focusable<E extends ElementType = '
       {...props}
     />
   );
-}) as <E extends ElementType = 'button'>(p: FocusableProps<E> & { ref?: Ref<HTMLElement> }) => JSX.Element;
+});
 
 /** Receives every remote/keyboard action before default navigation. Return true to consume it. */
 export function useActionListener(fn: ActionListener, enabled = true) {
@@ -202,12 +204,15 @@ export function useScreenFocus(screenKey: string, { defaultId, ready = true }: {
   }, [manager, screenKey]);
   useEffect(() => {
     if (!ready || done.current === screenKey) return;
-    done.current = screenKey;
     const remembered = manager.rememberedFor(screenKey);
     const savedScroll = scrollMemory.get(screenKey);
-    if (remembered && savedScroll !== undefined) window.scrollTo(0, savedScroll);
-    else if (!remembered) window.scrollTo(0, 0);
-    const raf = requestAnimationFrame(() => manager.requestFocus(remembered ?? defaultId));
+    const raf = requestAnimationFrame(() => {
+      // Marked done only once it actually ran (StrictMode runs effects twice and cancels the first frame).
+      done.current = screenKey;
+      if (remembered && savedScroll !== undefined) window.scrollTo(0, savedScroll);
+      else if (!remembered) window.scrollTo(0, 0);
+      manager.requestFocus(remembered ?? defaultId);
+    });
     return () => cancelAnimationFrame(raf);
   }, [manager, screenKey, ready, defaultId]);
   useEffect(() => {

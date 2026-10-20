@@ -121,7 +121,7 @@ export interface SearchService {
 
 export interface RecommendationService {
   /** Personalised picks seeded from the profile's history and watchlist. */
-  forProfile(seeds: MediaRef[], audience: Audience): Promise<MediaSummary[]>;
+  forProfile(seeds: { id: string }[], audience: Audience): Promise<MediaSummary[]>;
   similarTo(id: string): Promise<MediaSummary[]>;
 }
 

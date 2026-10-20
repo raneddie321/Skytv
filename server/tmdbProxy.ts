@@ -79,6 +79,7 @@ export function createTmdbProxy(options: TmdbProxyOptions) {
     }
 
     const params = new URLSearchParams(url.search);
+    FORBIDDEN_PARAMS.forEach((k) => params.delete(k));
     params.sort();
     const key = `${path}?${params.toString()}`;
     const hit = cache.get(key);
