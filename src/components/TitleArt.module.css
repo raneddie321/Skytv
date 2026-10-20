@@ -38,7 +38,7 @@
 .serif.sm { font-size: 1.4rem; }
 .serif.md { font-size: 1.8rem; }
 .serif.lg { font-size: 3.6rem; }
-.serif.xl { font-size: calc(var(--text-display) * 1.15); }
+.serif.xl { font-size: calc(var(--text-display) * 1.05); }
 .wide.sm { font-size: 0.95rem; }
 .wide.md { font-size: 1.15rem; }
 .wide.lg { font-size: 2.4rem; }

@@ -44,6 +44,8 @@ export default defineConfig(({ mode }) => {
       // See docs/PLATFORM_PACKAGING.md for older devices.
       target: ['chrome87', 'safari14'],
       sourcemap: true,
+      // hls.js (~600 kB) is a lazily loaded chunk fetched only when a device needs MSE-based HLS.
+      chunkSizeWarningLimit: 700,
       rollupOptions: {
         output: {
           manualChunks: {

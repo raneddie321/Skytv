@@ -29,7 +29,7 @@ export function Grid({ id, items, onSelectItem, variant = 'landscape', loading, 
         {error && !items.length ? (
           <ErrorState onRetry={onRetry} focusId={`${id}-retry`} />
         ) : loading ? (
-          <div className={`${styles.grid} ${styles[variant]}`}>
+          <div className={`${styles.grid} ${styles[variant]}`} aria-busy="true">
             {Array.from({ length: 10 }, (_, i) => (
               <Skeleton key={i} className={styles[`sk_${variant}`]} />
             ))}

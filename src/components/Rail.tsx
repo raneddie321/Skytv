@@ -34,7 +34,7 @@ export function Rail({ id, title, action, loading, error, onRetry, empty, isEmpt
         {error ? (
           <ErrorState compact onRetry={onRetry} focusId={`${id}-retry`} message="This row couldn’t be loaded." />
         ) : loading ? (
-          <div className={`${styles.scroller} no-scrollbar`}>
+          <div className={`${styles.scroller} no-scrollbar`} aria-busy="true">
             {Array.from({ length: 7 }, (_, i) => (
               <Skeleton key={i} className={`${styles.skeleton} ${styles[skeletonVariant]}`} />
             ))}

@@ -64,11 +64,26 @@ export function score(from: Rect, c: Rect, dir: Direction): number {
   return primary + orthogonal * (horizontal ? 3 : 2);
 }
 
+function primaryGap(from: Rect, c: Rect, dir: Direction): number {
+  return Math.max(
+    0,
+    dir === 'left' ? from.left - right(c) : dir === 'right' ? c.left - right(from) : dir === 'up' ? from.top - bottom(c) : c.top - bottom(from),
+  );
+}
+
 export function findBest<T>(from: Rect, candidates: Candidate<T>[], dir: Direction): Candidate<T> | null {
+  let pool = candidates.filter((c) => isInDirection(from, c.rect, dir));
+  if (!pool.length) return null;
+  // Vertical moves go to the nearest row first (e.g. episodes → season pills, not the nav bar far above),
+  // then pick the best-aligned item within that row band.
+  if (dir === 'up' || dir === 'down') {
+    const nearest = Math.min(...pool.map((c) => primaryGap(from, c.rect, dir)));
+    const band = Math.max(24, from.height * 0.5);
+    pool = pool.filter((c) => primaryGap(from, c.rect, dir) <= nearest + band);
+  }
   let best: Candidate<T> | null = null;
   let bestScore = Infinity;
-  for (const c of candidates) {
-    if (!isInDirection(from, c.rect, dir)) continue;
+  for (const c of pool) {
     const s = score(from, c.rect, dir);
     if (s < bestScore) {
       bestScore = s;

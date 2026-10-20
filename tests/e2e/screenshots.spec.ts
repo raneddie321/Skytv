@@ -79,6 +79,8 @@ async function seed(page: Page, active: string | null, route: string) {
 /** Waits for visible images to finish loading and animations to settle. */
 async function settle(page: Page, ms = 900) {
   await page.waitForTimeout(ms);
+  // No skeletons / loading states left on screen.
+  await page.waitForFunction(() => !document.querySelector('[aria-busy="true"]'), undefined, { timeout: 15_000 }).catch(() => undefined);
   await page.evaluate(async () => {
     const imgs = Array.from(document.images).filter((i) => {
       const r = i.getBoundingClientRect();

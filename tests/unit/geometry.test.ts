@@ -31,6 +31,14 @@ describe('spatial geometry', () => {
     expect(findBest(current, nextRow.map((rect, i) => ({ id: i, rect })), 'down')?.id).toBe(1);
   });
 
+  it('moves up to the nearest row even when it is offset sideways (episodes → seasons, not the nav bar)', () => {
+    const episode = r(1000, 600, 400, 225);
+    const seasons = [r(80, 540, 140, 48), r(230, 540, 140, 48)];
+    const nav = r(1000, 40, 160, 50);
+    const best = findBest(episode, [...seasons, nav].map((rect, i) => ({ id: i, rect })), 'up');
+    expect(best?.id).toBe(1);
+  });
+
   it('returns null when nothing is in that direction', () => {
     expect(findBest(row[0], row.slice(1).map((rect, i) => ({ id: i, rect })), 'left')).toBeNull();
   });
